@@ -1,7 +1,14 @@
 let circles = [];
 let rectangles = [];
 let semiCircles = [];
+let song, analyzer;
 
+function preload() {
+  //audio file from QQ music
+  //licensed under the Creative Commons 0 License
+  //let's load the sound file in preload
+  song = loadSound('assets/Music.mp3');
+}
 
 class NeonCircle {
   constructor(x, y, diameter, angle, proportion) {
@@ -12,12 +19,10 @@ class NeonCircle {
     this.proportion = proportion;
   }
 
-
   draw() {
     circleNeon(this.x, this.y, this.diameter, color(120, 100, 100, 100), color(0, 100, 100, 100), this.angle, this.proportion);
   }
 }
-
 
 class NeonRectangle {
   constructor(x, y, w, h, fillColor, strokeColor) {
@@ -28,7 +33,6 @@ class NeonRectangle {
     this.fillColor = fillColor;
     this.strokeColor = strokeColor;
   }
-
 
   draw() {
     fill(this.fillColor);
@@ -50,7 +54,6 @@ class NeonSemiCircle {
     this.fillColor = fillColor;
   }
 
-
   draw() {
     fill(this.fillColor);
     noStroke();
@@ -58,20 +61,15 @@ class NeonSemiCircle {
   }
 }
 
-
 function setup() {
   createCanvas(530, 780);
   colorMode(HSB, 360, 100, 100, 100);
 
+  // Create a new amplitude analyzer for analyzing the volume of music
+  analyzer = new p5.Amplitude();
 
-  noFill();
-  stroke(255);
-  strokeWeight(3);
-
-
-  imageMode(CENTER);
-  pixelDensity(2);
-
+  // Connecting the analyzer input to music
+  analyzer.setInput(song);
 
   // Initialize circles
   // Initialize circles on the left side
@@ -82,7 +80,6 @@ function setup() {
   circles.push(new NeonCircle(116, 137, 30, PI / 2, 0.5));
   circles.push(new NeonCircle(109, 181, 55, -PI / 2.5, 0.4));
   circles.push(new NeonCircle(122, 245, 70, PI / 1.83, 0.45));
-
 
   // Initialize circles in the middle
   circles.push(new NeonCircle(160, 280, 40, PI, 0.5));
@@ -99,7 +96,6 @@ function setup() {
   circles.push(new NeonCircle(195, 140, 40, PI / 1.68, 0.4));
   circles.push(new NeonCircle(322, 150, 37, PI / 2.4, 0.58));
 
-
   // Initialize circles on the right side
   circles.push(new NeonCircle(390, 240, 50, -PI / 2.5, 0.4));
   circles.push(new NeonCircle(396, 192, 40, PI / 2, 0.5));
@@ -109,7 +105,6 @@ function setup() {
   circles.push(new NeonCircle(450, 100, 50, -PI / 1.08, 0.55));
   circles.push(new NeonCircle(486, 120, 28, PI / 8, 0.5));
   circles.push(new NeonCircle(500, 100, 20, PI / 1.8, 0.45));
-
 
   // Initialize circles below
   circles.push(new NeonCircle(264, 340, 70, PI / 1.67, 0.4));
@@ -131,7 +126,6 @@ function setup() {
   rectangles.push(new NeonRectangle(0, 595, 58, 90, color(142, 66, 70), color(0, 0, 0)));
   rectangles.push(new NeonRectangle(479, 595, 58, 90, color(142, 66, 70), color(0, 0, 0)));
 
-
   // Initialize semi-circles
   semiCircles.push(new NeonSemiCircle(163, 667, 55, 40, color(60, 100, 100)));
   semiCircles.push(new NeonSemiCircle(110.5, 668, 52, 55, color(120, 100, 100, 100)));
@@ -140,24 +134,31 @@ function setup() {
   semiCircles.push(new NeonSemiCircle(278, 667, 48, 58, color(0, 100, 100, 100)));
   semiCircles.push(new NeonSemiCircle(333, 667, 60, 20, color(60, 100, 100)));
   semiCircles.push(new NeonSemiCircle(384, 668, 41, 55, color(120, 100, 100, 100)));
-}
 
+  // Add a play/pause button
+  // In p5.js we can't play the sound automatically, so we need to add a button to start the sound
+  let button = createButton('Play/Pause');
+
+  // Set the button position to the bottom center
+  button.position((width - button.width) / 2, height - button.height - 2);
+
+  // Set the action of the button by selecting the action and the function to be run
+  //  In this case, we want to run the play_pause function when the button is pressed
+  button.mousePressed(play_pause);
+}
 
 function draw() {
   background(0); // Set the background to black
-
 
   // Draw rectangles
   for (let rect of rectangles) {
     rect.draw();
   }
 
-
   // Draw semi-circles
   for (let semiCircle of semiCircles) {
     semiCircle.draw();
   }
-
 
   // Draw circles
   for (let circle of circles) {
@@ -165,21 +166,25 @@ function draw() {
   }
 }
 
+function play_pause() {
+  if (song.isPlaying()) {
+    song.pause();
+  } else {
+    song.play();
+  }
+}
 
 function circleNeon(x, y, diameter, color1, color2, angle, proportion) {
   let greenAngle = proportion * PI * 2;
   let redAngle = (1 - proportion) * PI * 2;
 
-
   // Apply glow effect for the first part (green)
   glow(color1, 400);
   drawPartialCircle(x, y, diameter, color1, angle, greenAngle);
 
-
   // Apply glow effect for the second part (red)
   glow(color2, 400);
   drawPartialCircle(x, y, diameter, color2, angle + greenAngle, redAngle);
-
 
   // Apply additional layers of glow effect
   glow(color1, 80);
@@ -187,17 +192,14 @@ function circleNeon(x, y, diameter, color1, color2, angle, proportion) {
   glow(color2, 80);
   drawPartialCircle(x, y, diameter, color2, angle + greenAngle, redAngle);
 
-
   glow(color1, 12);
   drawPartialCircle(x, y, diameter, color1, angle, greenAngle);
   glow(color2, 12);
   drawPartialCircle(x, y, diameter, color2, angle + greenAngle, redAngle);
 
-
   // Draw yellow line with glow
   glowLine(x, y, diameter, angle, greenAngle, color(60, 100, 100), [80, 40, 12]);
 }
-
 
 function drawPartialCircle(x, y, diameter, col, startAngle, arcLength) {
   fill(col);
@@ -211,7 +213,6 @@ function drawPartialCircle(x, y, diameter, col, startAngle, arcLength) {
   endShape(CLOSE);
 }
 
-
 function drawLineSegment(x, y, diameter, angle, arcLength) {
   stroke(60, 100, 100); // Yellow color in HSB
   strokeWeight(4); // Line thickness
@@ -223,14 +224,12 @@ function drawLineSegment(x, y, diameter, angle, arcLength) {
   line(x1, y1, x2, y2);
 }
 
-
 function glowLine(x, y, diameter, angle, arcLength, col, blurs) {
   for (let blur of blurs) {
     glow(col, blur);
     drawLineSegment(x, y, diameter, angle, arcLength);
   }
 }
-
 
 function glow(glowColor, blurriness) {
   drawingContext.shadowBlur = blurriness;
