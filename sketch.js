@@ -1,9 +1,8 @@
 let circles = [];
 let rectangles = [];
 let semiCircles = [];
-let song, analyzer, fft, layer;//song: stores the loaded audio file. analyzer: object used to analyze the amplitude of the audio. fft: object used to perform frequency analysis. layer: used to create a layer for drawing.
-let a, b, playing; //a, b: variables related to rotation angle.
-//playing: a boolean value indicating whether the audio is playing or not
+let song, analyzer, fft, layer;; // song: stores the loaded audio file. analyzer: object used to analyze the amplitude of the audio. fft: object used to perform frequency analysis. layer: used to create a layer for drawing.
+let a, b, playing;// a, b: variables related to rotation angle. playing: a boolean value indicating whether the audio is playing or not
 
 function preload() {
   //audio file from QQ music
@@ -12,6 +11,7 @@ function preload() {
   song = loadSound('assets/Music.mp3');
 }
 
+//class 1
 class NeonCircle {
   constructor(x, y, diameter, angle, proportion) {
     this.x = x;
@@ -22,10 +22,12 @@ class NeonCircle {
   }
 
   draw() {
+    this.proportion = map(analyzer.getLevel(), 0, 1.5, 0, 3); // Through YOUtubu's video, we found that to associate the propotion with the map function, we can adjust the scale by the amplitude of the music.
     circleNeon(this.x, this.y, this.diameter, color(120, 100, 100, 100), color(0, 100, 100, 100), this.angle, this.proportion);
   }
 }
 
+//class 2
 class NeonRectangle {
   constructor(x, y, w, h, fillColor, strokeColor) {
     this.x = x;
@@ -47,6 +49,7 @@ class NeonRectangle {
   }
 }
 
+//class 3
 class NeonSemiCircle {
   constructor(x, y, w, h, fillColor) {
     this.x = x;
@@ -70,7 +73,7 @@ function setup() {
   // Create a new amplitude analyzer for analyzing the volume of music
   analyzer = new p5.Amplitude();
 
-  // analyzer: Creates an amplitude analyzer and connects it to the audio input.
+  // Connecting the analyzer input to music
   analyzer.setInput(song);
 
   // Initialize FFT for frequency analysis
@@ -78,7 +81,7 @@ function setup() {
 
   layer = createGraphics(width, height);
 
-  let fr = 120;
+  let fr = 100;//Frequency value
   frameRate(fr);
 
   a = 360 / ((song.duration()) * fr);
@@ -178,44 +181,6 @@ function draw() {
     circle.draw();
   }
 
-  // Visualize music
-  let spectrum = fft.analyze();
-  let spectrumB = spectrum.reverse().slice(40);
-
-  push();
-  translate(width / 2, height / 2);
-  noFill();
-  stroke('pink');
-
-  beginShape();
-  for (let i = 0; i < spectrumB.length; i++) {
-    let amp = spectrumB[i];
-    let x = map(amp, 0, 256, -2, 2);
-    let y = map(i, 0, spectrumB.length, 30, 215);
-    vertex(x, y);
-  }
-  endShape();
-  pop();
-
-  push();
-  translate(width / 2, height / 2);
-  rotate(radians(a));
-
-  layer.push();
-  layer.translate(width / 2, height / 2);
-  layer.rotate(radians(-a));
-
-  for (let i = 0; i < spectrumB.length; i++) {
-    layer.strokeWeight(0.018 * spectrumB[i]);
-    layer.stroke(245, 132, 255 - spectrumB[i], spectrumB[i] / 40);
-    layer.line(0, i, 0, i);
-  }
-
-  layer.pop();
-
-  image(layer, -width / 2, -height / 2);
-  pop();
-
   if (playing) a += b;
 }
 
@@ -289,3 +254,28 @@ function glow(glowColor, blurriness) {
   drawingContext.shadowBlur = blurriness;
   drawingContext.shadowColor = glowColor;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
