@@ -1,7 +1,9 @@
 let circles = [];
 let rectangles = [];
 let semiCircles = [];
-let song, analyzer;
+let song, analyzer, fft, layer;//song: stores the loaded audio file. analyzer: object used to analyze the amplitude of the audio. fft: object used to perform frequency analysis. layer: used to create a layer for drawing.
+let a, b, playing; //a, b: variables related to rotation angle.
+//playing: a boolean value indicating whether the audio is playing or not
 
 function preload() {
   //audio file from QQ music
@@ -68,8 +70,20 @@ function setup() {
   // Create a new amplitude analyzer for analyzing the volume of music
   analyzer = new p5.Amplitude();
 
-  // Connecting the analyzer input to music
+  // analyzer: Creates an amplitude analyzer and connects it to the audio input.
   analyzer.setInput(song);
+
+  // Initialize FFT for frequency analysis
+  fft = new p5.FFT(0, 256);
+
+  layer = createGraphics(width, height);
+
+  let fr = 120;
+  frameRate(fr);
+
+  a = 360 / ((song.duration()) * fr);
+  b = a;
+  playing = false;
 
   // Initialize circles
   // Initialize circles on the left side
@@ -136,7 +150,6 @@ function setup() {
   semiCircles.push(new NeonSemiCircle(384, 668, 41, 55, color(120, 100, 100, 100)));
 
   // Add a play/pause button
-  // In p5.js we can't play the sound automatically, so we need to add a button to start the sound
   let button = createButton('Play/Pause');
 
   // Set the button position to the bottom center
@@ -164,6 +177,46 @@ function draw() {
   for (let circle of circles) {
     circle.draw();
   }
+
+  // Visualize music
+  let spectrum = fft.analyze();
+  let spectrumB = spectrum.reverse().slice(40);
+
+  push();
+  translate(width / 2, height / 2);
+  noFill();
+  stroke('pink');
+
+  beginShape();
+  for (let i = 0; i < spectrumB.length; i++) {
+    let amp = spectrumB[i];
+    let x = map(amp, 0, 256, -2, 2);
+    let y = map(i, 0, spectrumB.length, 30, 215);
+    vertex(x, y);
+  }
+  endShape();
+  pop();
+
+  push();
+  translate(width / 2, height / 2);
+  rotate(radians(a));
+
+  layer.push();
+  layer.translate(width / 2, height / 2);
+  layer.rotate(radians(-a));
+
+  for (let i = 0; i < spectrumB.length; i++) {
+    layer.strokeWeight(0.018 * spectrumB[i]);
+    layer.stroke(245, 132, 255 - spectrumB[i], spectrumB[i] / 40);
+    layer.line(0, i, 0, i);
+  }
+
+  layer.pop();
+
+  image(layer, -width / 2, -height / 2);
+  pop();
+
+  if (playing) a += b;
 }
 
 function play_pause() {
@@ -172,6 +225,7 @@ function play_pause() {
   } else {
     song.play();
   }
+  playing = !playing;
 }
 
 function circleNeon(x, y, diameter, color1, color2, angle, proportion) {
