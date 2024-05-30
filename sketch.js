@@ -3,6 +3,9 @@ let rectangles = [];
 let semiCircles = [];
 let song, analyzer, fft, layer;; // song: stores the loaded audio file. analyzer: object used to analyze the amplitude of the audio. fft: object used to perform frequency analysis. layer: used to create a layer for drawing.
 let a, b, playing;// a, b: variables related to rotation angle. playing: a boolean value indicating whether the audio is playing or not
+let baseWidth = 530;
+let baseHeight = 780;
+let scaleFactor; //Scale, which is used to resize graphic elements based on the window size.
 
 function preload() {
   //audio file from QQ music
@@ -23,7 +26,10 @@ class NeonCircle {
 
   draw() {
     this.proportion = map(analyzer.getLevel(), 0, 1.5, 0, 3); // Through YOUtubu's video, we found that to associate the propotion with the map function, we can adjust the scale by the amplitude of the music.
-    circleNeon(this.x, this.y, this.diameter, color(120, 100, 100, 100), color(0, 100, 100, 100), this.angle, this.proportion);
+    let adjustedDiameter = this.diameter * scaleFactor; //Multiply this.diameter of the circle by the scaleFactor to find the adjustedDiameter
+    let adjustedX = this.x * scaleFactor + (width - baseWidth * scaleFactor) / 2; //The reason is the same as the previous line
+    let adjustedY = this.y * scaleFactor + (height - baseHeight * scaleFactor) / 2;
+    circleNeon(adjustedX, adjustedY, adjustedDiameter, color(120, 100, 100, 100), color(0, 100, 100, 100), this.angle, this.proportion);
   }
 }
 
@@ -45,7 +51,11 @@ class NeonRectangle {
     } else {
       noStroke();
     }
-    rect(this.x, this.y, this.w, this.h);
+    let adjustedW = this.w * scaleFactor;//Multiply the width of the rectangle this.w by the scaleFactor to find the adjusted width adjustedW.
+    let adjustedH = this.h * scaleFactor;//The reason is the same as the previous line
+    let adjustedX = this.x * scaleFactor + (width - baseWidth * scaleFactor) / 2;
+    let adjustedY = this.y * scaleFactor + (height - baseHeight * scaleFactor) / 2;
+    rect(adjustedX, adjustedY, adjustedW, adjustedH);
   }
 }
 
@@ -62,7 +72,11 @@ class NeonSemiCircle {
   draw() {
     fill(this.fillColor);
     noStroke();
-    arc(this.x, this.y, this.w, this.h, PI, 0, CHORD);
+    let adjustedW = this.w * scaleFactor;
+    let adjustedH = this.h * scaleFactor;
+    let adjustedX = this.x * scaleFactor + (width - baseWidth * scaleFactor) / 2;
+    let adjustedY = this.y * scaleFactor + (height - baseHeight * scaleFactor) / 2;
+    arc(adjustedX, adjustedY, adjustedW, adjustedH, PI, 0, CHORD);
   }
 }
 
@@ -81,77 +95,25 @@ function setup() {
 
   layer = createGraphics(width, height);
 
-  let fr = 100;//Frequency value
+  let fr = 120;//Frequency value
   frameRate(fr);
 
   a = 360 / ((song.duration()) * fr);
   b = a;
   playing = false;
 
-  // Initialize circles
-  // Initialize circles on the left side
-  circles.push(new NeonCircle(60, 0, 50, PI / 1.7, 0.4));
-  circles.push(new NeonCircle(50, 55, 60, -PI / 2.2, 0.45));
-  circles.push(new NeonCircle(55, 103, 33, PI / 2, 0.5));
-  circles.push(new NeonCircle(87, 120, 40, PI, 0.5));
-  circles.push(new NeonCircle(116, 137, 30, PI / 2, 0.5));
-  circles.push(new NeonCircle(109, 181, 55, -PI / 2.5, 0.4));
-  circles.push(new NeonCircle(122, 245, 70, PI / 1.83, 0.45));
+    // Calculate scale factor
+    calculateScaleFactor();
 
-  // Initialize circles in the middle
-  circles.push(new NeonCircle(160, 280, 40, PI, 0.5));
-  circles.push(new NeonCircle(200, 287, 40, -PI / 10, 0.6));
-  circles.push(new NeonCircle(237, 278, 30, PI / 1.05, 0.55));
-  circles.push(new NeonCircle(278, 287, 50, -PI / 10, 0.6));
-  circles.push(new NeonCircle(325, 278, 40, PI / 20, 0.45));
-  circles.push(new NeonCircle(371, 273, 48, PI / 1.11, 0.6));
-  circles.push(new NeonCircle(253, 253, 30, -PI / 2, 0.5));
-  circles.push(new NeonCircle(253, 207, 55, PI / 2, 0.5));
-  circles.push(new NeonCircle(215, 178, 45, PI, 0.5));
-  circles.push(new NeonCircle(175, 181, 30, -PI / 20, 0.55));
-  circles.push(new NeonCircle(295, 181, 45, PI / 200, 0.5));
-  circles.push(new NeonCircle(195, 140, 40, PI / 1.68, 0.4));
-  circles.push(new NeonCircle(322, 150, 37, PI / 2.4, 0.58));
-
-  // Initialize circles on the right side
-  circles.push(new NeonCircle(390, 240, 50, -PI / 2.5, 0.4));
-  circles.push(new NeonCircle(396, 192, 40, PI / 2, 0.5));
-  circles.push(new NeonCircle(396, 140, 60, -PI / 2, 0.5));
-  circles.push(new NeonCircle(388, 95, 30, PI / 3.4, 0.7));
-  circles.push(new NeonCircle(413, 90, 20, PI / 8, 0.5));
-  circles.push(new NeonCircle(450, 100, 50, -PI / 1.08, 0.55));
-  circles.push(new NeonCircle(486, 120, 28, PI / 8, 0.5));
-  circles.push(new NeonCircle(500, 100, 20, PI / 1.8, 0.45));
-
-  // Initialize circles below
-  circles.push(new NeonCircle(264, 340, 70, PI / 1.67, 0.4));
-  circles.push(new NeonCircle(248, 417, 81, -PI / 2.25, 0.45));
-  circles.push(new NeonCircle(250, 483, 45, PI / 2.22, 0.55));
-  circles.push(new NeonCircle(261, 521, 30, PI / 1.42, 0.3));
-  circles.push(new NeonCircle(240, 557, 50, -PI / 3.3, 0.3));
-  circles.push(new NeonCircle(205.5, 577, 30, -PI / 0.95, 0.55));
-  circles.push(new NeonCircle(164, 580, 50, PI / 200, 0.5));
-  circles.push(new NeonCircle(283, 575, 40, PI / 10, 0.4));
-  circles.push(new NeonCircle(332, 580, 60, PI / 1, 0.5));
-
-  // Initialize rectangles
-  rectangles.push(new NeonRectangle(58, 595, 433, 90, color(142, 66, 70), color(0, 0, 0)));
-  rectangles.push(new NeonRectangle(82, 580, 325, 90, color(60, 100, 100), color(0, 0, 0)));
-  rectangles.push(new NeonRectangle(138, 582.5, 50, 83, color(0, 100, 100, 100), null));
-  rectangles.push(new NeonRectangle(193, 582.5, 62, 83, color(120, 100, 100, 100), null));
-  rectangles.push(new NeonRectangle(303, 582.5, 60, 85, color(120, 100, 100, 100), null));
-  rectangles.push(new NeonRectangle(0, 595, 58, 90, color(142, 66, 70), color(0, 0, 0)));
-  rectangles.push(new NeonRectangle(479, 595, 58, 90, color(142, 66, 70), color(0, 0, 0)));
-
-  // Initialize semi-circles
-  semiCircles.push(new NeonSemiCircle(163, 667, 55, 40, color(60, 100, 100)));
-  semiCircles.push(new NeonSemiCircle(110.5, 668, 52, 55, color(120, 100, 100, 100)));
-  semiCircles.push(new NeonSemiCircle(224, 667, 63, 85, color(60, 100, 100)));
-  semiCircles.push(new NeonSemiCircle(223.5, 667, 57, 78, color(0, 100, 100, 100)));
-  semiCircles.push(new NeonSemiCircle(278, 667, 48, 58, color(0, 100, 100, 100)));
-  semiCircles.push(new NeonSemiCircle(333, 667, 60, 20, color(60, 100, 100)));
-  semiCircles.push(new NeonSemiCircle(384, 668, 41, 55, color(120, 100, 100, 100)));
-
+    // Initialize circles
+    initializeCircles();
+  
+    // Initialize rectangles
+    initializeRectangles();
+  
+    // Initialize semi-circles
+    initializeSemiCircles();
+  
   // Add a play/pause button
   let button = createButton('Play/Pause');
 
@@ -255,27 +217,89 @@ function glow(glowColor, blurriness) {
   drawingContext.shadowColor = glowColor;
 }
 
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  calculateScaleFactor();
+  positionButton(select('button'));
+}
 
+//tought from week 8 tut part2
+function calculateScaleFactor() {
+  let scaleX = windowWidth / baseWidth;
+  let scaleY = windowHeight / baseHeight;
+  scaleFactor = min(scaleX, scaleY);
+}
 
+function positionButton(button) {
+  button.position(
+    (width - button.width) / 2,
+    height - button.height - 20
+  );
+}
 
+function initializeCircles() {
+  // Initialize circles on the left side
+  circles.push(new NeonCircle(60, 0, 50, PI / 1.7, 0.4));
+  circles.push(new NeonCircle(50, 55, 60, -PI / 2.2, 0.45));
+  circles.push(new NeonCircle(55, 103, 33, PI / 2, 0.5));
+  circles.push(new NeonCircle(87, 120, 40, PI, 0.5));
+  circles.push(new NeonCircle(116, 137, 30, PI / 2, 0.5));
+  circles.push(new NeonCircle(109, 181, 55, -PI / 2.5, 0.4));
+  circles.push(new NeonCircle(122, 245, 70, PI / 1.83, 0.45));
 
+  // Initialize circles in the middle
+  circles.push(new NeonCircle(160, 280, 40, PI, 0.5));
+  circles.push(new NeonCircle(200, 287, 40, -PI / 10, 0.6));
+  circles.push(new NeonCircle(237, 278, 30, PI / 1.05, 0.55));
+  circles.push(new NeonCircle(278, 287, 50, -PI / 10, 0.6));
+  circles.push(new NeonCircle(325, 278, 40, PI / 20, 0.45));
+  circles.push(new NeonCircle(371, 273, 48, PI / 1.11, 0.6));
+  circles.push(new NeonCircle(253, 253, 30, -PI / 2, 0.5));
+  circles.push(new NeonCircle(253, 207, 55, PI / 2, 0.5));
+  circles.push(new NeonCircle(215, 178, 45, PI, 0.5));
+  circles.push(new NeonCircle(175, 181, 30, -PI / 20, 0.55));
+  circles.push(new NeonCircle(295, 181, 45, PI / 200, 0.5));
+  circles.push(new NeonCircle(195, 140, 40, PI / 1.68, 0.4));
+  circles.push(new NeonCircle(322, 150, 37, PI / 2.4, 0.58));
 
+  // Initialize circles on the right side
+  circles.push(new NeonCircle(390, 240, 50, -PI / 2.5, 0.4));
+  circles.push(new NeonCircle(396, 192, 40, PI / 2, 0.5));
+  circles.push(new NeonCircle(396, 140, 60, -PI / 2, 0.5));
+  circles.push(new NeonCircle(388, 95, 30, PI / 3.4, 0.7));
+  circles.push(new NeonCircle(413, 90, 20, PI / 8, 0.5));
+  circles.push(new NeonCircle(450, 100, 50, -PI / 1.08, 0.55));
+  circles.push(new NeonCircle(486, 120, 28, PI / 8, 0.5));
+  circles.push(new NeonCircle(500, 100, 20, PI / 1.8, 0.45));
 
+  // Initialize circles below
+  circles.push(new NeonCircle(264, 340, 70, PI / 1.67, 0.4));
+  circles.push(new NeonCircle(248, 417, 81, -PI / 2.25, 0.45));
+  circles.push(new NeonCircle(250, 483, 45, PI / 2.22, 0.55));
+  circles.push(new NeonCircle(261, 521, 30, PI / 1.42, 0.3));
+  circles.push(new NeonCircle(240, 557, 50, -PI / 3.3, 0.3));
+  circles.push(new NeonCircle(205.5, 577, 30, -PI / 0.95, 0.55));
+  circles.push(new NeonCircle(164, 580, 50, PI / 200, 0.5));
+  circles.push(new NeonCircle(283, 575, 40, PI / 10, 0.4));
+  circles.push(new NeonCircle(332, 580, 60, PI / 1, 0.5));
+}
 
+function initializeRectangles() {
+  rectangles.push(new NeonRectangle(58, 595, 433, 90, color(142, 66, 70), color(0, 0, 0)));
+  rectangles.push(new NeonRectangle(82, 580, 325, 90, color(60, 100, 100), color(0, 0, 0)));
+  rectangles.push(new NeonRectangle(138, 582.5, 50, 83, color(0, 100, 100, 100), null));
+  rectangles.push(new NeonRectangle(193, 582.5, 62, 83, color(120, 100, 100, 100), null));
+  rectangles.push(new NeonRectangle(303, 582.5, 60, 85, color(120, 100, 100, 100), null));
+  rectangles.push(new NeonRectangle(0, 595, 58, 90, color(142, 66, 70), color(0, 0, 0)));
+  rectangles.push(new NeonRectangle(479, 595, 58, 90, color(142, 66, 70), color(0, 0, 0)));
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+function initializeSemiCircles() {
+  semiCircles.push(new NeonSemiCircle(163, 667, 55, 40, color(60, 100, 100)));
+  semiCircles.push(new NeonSemiCircle(110.5, 668, 52, 55, color(120, 100, 100, 100)));
+  semiCircles.push(new NeonSemiCircle(224, 667, 63, 85, color(60, 100, 100)));
+  semiCircles.push(new NeonSemiCircle(223.5, 667, 57, 78, color(0, 100, 100, 100)));
+  semiCircles.push(new NeonSemiCircle(278, 667, 48, 58, color(0, 100, 100, 100)));
+  semiCircles.push(new NeonSemiCircle(333, 667, 60, 20, color(60, 100, 100)));
+  semiCircles.push(new NeonSemiCircle(384, 668, 41, 55, color(120, 100, 100, 100)));
+}
